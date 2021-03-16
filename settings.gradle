@@ -1,0 +1,3 @@
+include ':signatureverifier'
+include ':sample'
+rootProject.name = "android-signatureverifier"
