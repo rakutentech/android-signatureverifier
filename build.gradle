@@ -9,23 +9,37 @@ buildscript {
         google()
         jcenter()
         maven { url "http://dl.bintray.com/arturbosch/code-analysis" }
+
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$CONFIG.versions.android.plugin"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$CONFIG.versions.kotlin"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.0"
+        classpath 'pl.allegro.tech.build:axion-release-plugin:1.10.2'
     }
 }
 
-plugins {
 
-}
 
-allprojects {
+allprojects { proj ->
     repositories {
         google()
         jcenter()
+        mavenCentral()
     }
+
+    apply plugin: 'pl.allegro.tech.build.axion-release'
+    scmVersion {
+        useHighestVersion = true
+        tag {
+            prefix = 'v'
+            versionSeparator = ''
+            versionIncrementer 'incrementMinor'
+        }
+    }
+
+    proj.version = scmVersion.version
+
 }
 
 task clean(type: Delete) {
