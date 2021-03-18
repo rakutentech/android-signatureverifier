@@ -3,8 +3,6 @@ version: 2.1
 orbs:
   android-sdk: rakutentech/android-sdk@0.2.1
 
-
-
 workflows:
   build_and_test:
     jobs:
@@ -16,4 +14,3 @@ workflows:
             {{ checksum "signatureverifier/build.gradle" }}
           sdk-path: signatureverifier
           sample-app-path: sample
-
