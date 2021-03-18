@@ -1,32 +1,16 @@
 version: 2.1
 
-#orbs:
-#  android-sdk: rakutentech/android-sdk@0.2.0
+orbs:
+  android-sdk: rakutentech/android-sdk@0.2.1
 
-jobs:
-  build-test:
-    docker:
-      - image: circleci/android@sha256:45eb47efaf498cdbf01b16e6a294ef20a4979f6acd6aaf75913707190806bb4c
-    environment:
-      JVM_OPTS: "-Xmx1024m -XX:+PrintFlagsFinal -XX:+PrintGCDetails"
-      _JAVA_OPTIONS: "-Xmx1024m"
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1 -Dorg.gradle.parallel=false"
-    steps:
-      - checkout # check out the code in the project directory
-      - run: git submodule update --init
-      - run:
-          name: Run Tests
-          command: ./gradlew check
-      - run:
-          name: Assemble AAR
-          command: ./gradlew assemble
-      - store_test_results:
-          path: signatureverifier/build/test-results
-          destination: test-results
-      - store_artifacts:
-          path: signatureverifier/build/reports
-          destination: reports
 workflows:
   build_and_test:
     jobs:
-      - build-test
+      - android-sdk/build:
+          gradle-cache-key: >-
+            gradle-
+            {{ checksum "build.gradle" }}
+            {{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+            {{ checksum "signatureverifier/build.gradle" }}
+          sdk-path: signatureverifier
+          sample-app-path: sample
