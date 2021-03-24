@@ -14,3 +14,8 @@ workflows:
             {{ checksum "signatureverifier/build.gradle" }}
           sdk-path: signatureverifier
           sample-app-path: sample
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /.*/
