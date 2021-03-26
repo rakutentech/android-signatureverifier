@@ -6,7 +6,7 @@ If you find a bug in the source code, you can help us by submitting an issue to 
 1. Fork the project
 2. Implement feature/fix bug & add test cases
 3. Ensure test cases & static analysis runs successfully - run `./gradlew check`
-4. Submit a pull request to `master` branch
+4. Submit a pull request to `main` branch
 
 Please include unit tests where necessary to cover any functionality that is introduced.
 
