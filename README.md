@@ -7,7 +7,6 @@ Provides a security feature to verify any signed blob of data's authenticity aft
 This repository uses submodules for some configuration, so they must be initialized first.
 ```bash
 $ git submodule update --init
-$ git submodule update
 $ ./gradlew assemble
 ```
 ## Continuous Integration and Deployment
