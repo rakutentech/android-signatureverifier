@@ -1,13 +1,12 @@
+[![CircleCI](https://circleci.com/gh/rakutentech/android-signatureverifier.svg?style=svg)](https://circleci.com/gh/rakutentech/android-signatureverifier)
 
-
-# Android Signatureverifier SDK
-Provides a security feature to verify data authenticity of the [Mini App](https://github.com/rakutentech/android-miniapp) ZIP file (source code) after it has been downloaded
+# Android Signature Verifier SDK
+Provides a security feature to verify any signed blob of data's authenticity after it has been downloaded.
 
 ## How to build
 This repository uses submodules for some configuration, so they must be initialized first.
 ```bash
 $ git submodule update --init
-$ git submodule update
 $ ./gradlew assemble
 ```
 ## Continuous Integration and Deployment
