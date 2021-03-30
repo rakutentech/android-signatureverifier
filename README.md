@@ -1,3 +1,4 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![CircleCI](https://circleci.com/gh/rakutentech/android-signatureverifier.svg?style=svg)](https://circleci.com/gh/rakutentech/android-signatureverifier)
 
 # Android Signature Verifier SDK
