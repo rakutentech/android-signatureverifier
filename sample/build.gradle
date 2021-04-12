@@ -8,7 +8,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.rakuten.tech.mobile.test"
+        applicationId "io.github.rakutentech.test"
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
@@ -28,7 +28,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 }
 
