@@ -21,10 +21,13 @@ internal class RealSignatureVerifier(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : SignatureVerifier() {
 
+    @SuppressWarnings("LabeledExpression")
     override suspend fun verify(publicKeyId: String, data: InputStream, signature: String) =
         withContext(dispatcher) {
 
-            val key = cache[publicKeyId]
+            // always return false when EncryptedSharedPreferences was not initialized
+            // due to keystore validation.
+            val key = cache[publicKeyId] ?: return@withContext false
 
             val isVerified = Signature.getInstance("SHA256withECDSA")
                 .apply {

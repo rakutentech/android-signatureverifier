@@ -9,8 +9,10 @@ import io.github.rakutentech.signatureverifier.RobolectricBaseSpec
 import io.github.rakutentech.signatureverifier.api.PublicKeyFetcher
 import org.amshove.kluent.*
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.mockito.Mockito
+import org.robolectric.annotation.Config
 
 class PublicKeyCacheSpec : RobolectricBaseSpec() {
 
@@ -65,9 +67,27 @@ class PublicKeyCacheSpec : RobolectricBaseSpec() {
         Mockito.verify(mockEncryptor).putEncryptedKey(eq("test_key_id"), isNull())
     }
 
+    @Test
+    @Config(sdk = [22])
+    fun `should return cached key when using real encryptor`() {
+        TestKeyStore.setup
+        val cache = createCache(encryptor = null)
+
+        cache["test_key_id"] shouldBeEqualTo "test_public_key"
+        Mockito.verify(mockFetcher).fetch(eq("test_key_id"))
+    }
+
+    @Test
+    fun `should return null when using real encryptor with keystore validation issue`() {
+        val cache = createCache(encryptor = null)
+
+        cache["test_key_id"].shouldBeNull()
+        Mockito.verify(mockFetcher, never()).fetch(eq("test_key_id"))
+    }
+
     private fun createCache(
         fetcher: PublicKeyFetcher = mockFetcher,
         context: Context = ApplicationProvider.getApplicationContext(),
-        encryptor: SharedPreferenceEncryptor = mockEncryptor
+        encryptor: SharedPreferenceEncryptor? = mockEncryptor
     ) = PublicKeyCache(fetcher, context, encryptor)
 }

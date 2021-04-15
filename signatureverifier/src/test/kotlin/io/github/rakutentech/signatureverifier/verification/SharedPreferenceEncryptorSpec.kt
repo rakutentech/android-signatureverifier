@@ -3,7 +3,6 @@ package io.github.rakutentech.signatureverifier.verification
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import androidx.test.core.app.ApplicationProvider
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.eq
@@ -20,14 +19,11 @@ import org.mockito.Mockito
 import org.robolectric.annotation.Config
 
 class SharedPreferenceEncryptorSpec : RobolectricBaseSpec() {
-
-    private val mockGenerator = Mockito.mock(PreferenceEncryptorKeyGenerator::class.java)
     private val mockPref = Mockito.mock(EncryptedSharedPreferences::class.java)
     private val mockEdit = Mockito.mock(SharedPreferences.Editor::class.java)
 
     @Before
     fun setup() {
-        When calling mockGenerator.generateKey(any()) itReturns Mockito.mock(MasterKey::class.java)
         When calling mockPref.edit() itReturns mockEdit
         When calling mockEdit.putString(any(), any()) itReturns mockEdit
     }
@@ -63,18 +59,10 @@ class SharedPreferenceEncryptorSpec : RobolectricBaseSpec() {
         Mockito.verify(mockPref).getString(eq(KEY_ID), isNull())
     }
 
-    @Test
-    fun `should generate key once`() {
-        createEncryptor(generator = mockGenerator, pref = null)
-
-        Mockito.verify(mockGenerator).generateKey(any())
-    }
-
     private fun createEncryptor(
         context: Context = ApplicationProvider.getApplicationContext(),
-        generator: PreferenceEncryptorKeyGenerator = PreferenceEncryptorKeyGenerator("_androidx_security_master_key_"),
         pref: EncryptedSharedPreferences? = mockPref
-    ) = SharedPreferenceEncryptor(context, generator, pref)
+    ) = SharedPreferenceEncryptor(context, pref)
 
     companion object {
         private const val PUBLIC_KEY = "test_public_key"
