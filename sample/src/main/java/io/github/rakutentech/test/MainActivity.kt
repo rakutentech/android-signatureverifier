@@ -1,4 +1,4 @@
-package com.rakuten.tech.mobile.test
+package io.github.rakutentech.test
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle

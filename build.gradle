@@ -3,7 +3,9 @@ buildscript {
     // This must be the first line of your buildscript closure
     apply from: "config/index.gradle"
 
-    CONFIG.versions.kotlin = "1.4.31"
+    CONFIG.versions.kotlin = '1.4.31'
+    CONFIG.versions.okhttp = '4.8.0'
+    CONFIG.versions.moshi = '1.9.2'
 
     repositories {
         google()
@@ -20,7 +22,9 @@ buildscript {
     }
 }
 
-
+plugins {
+    id 'io.gitlab.arturbosch.detekt' version '1.1.1'
+}
 
 allprojects { proj ->
     repositories {
