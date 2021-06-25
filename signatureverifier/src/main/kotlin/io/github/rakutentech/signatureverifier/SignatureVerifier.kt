@@ -38,6 +38,7 @@ abstract class SignatureVerifier {
          *
          * @return `true` if initialization is successful, and `false` otherwise.
          */
+        @SuppressWarnings("LongMethod", "TooGenericExceptionCaught")
         fun init(context: Context, errorCallback: ((ex: Exception) -> Unit)? = null): Boolean {
 
             return try {
@@ -77,5 +78,8 @@ internal class NotInitializedSignatureVerifier : SignatureVerifier() {
     override suspend fun verify(publicKeyId: String, data: InputStream, signature: String) = false
 }
 
+/**
+ * Custom exception for Signature Verifier SDK.
+ */
 class SignatureVerifierException(name: String, cause: Throwable? = null) :
     RuntimeException(name, cause)

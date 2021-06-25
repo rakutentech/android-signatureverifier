@@ -13,8 +13,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.io.InputStream
 
-
-class SignatureVerifierSpec: RobolectricBaseSpec() {
+class SignatureVerifierSpec : RobolectricBaseSpec() {
 
     @Test
     fun `should initialize instance with RealSignatureVerifier`() {

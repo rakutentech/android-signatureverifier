@@ -46,7 +46,7 @@ class PublicKeyCacheSpec : RobolectricBaseSpec() {
     fun `should return null when key fetcher failed`() {
         val cache = createCache()
         When calling mockEncryptor.getEncryptedKey(any()) itReturns null
-        When calling mockFetcher.fetch(eq("test_key_id")) itThrows IOException()
+        When calling mockFetcher.fetch(eq("test_key_id")) itThrows IOException("test")
 
         cache["test_key_id"].shouldBeNull()
         Mockito.verify(mockFetcher).fetch(eq("test_key_id"))

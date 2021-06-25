@@ -26,6 +26,7 @@ internal data class PublicKeyResponse(
     val pemKey: String?
 ) {
     companion object {
+        @SuppressWarnings("SwallowedException")
         fun fromJsonString(body: String): PublicKeyResponse {
             return try {
                 Gson().fromJson(body, PublicKeyResponse::class.java)
