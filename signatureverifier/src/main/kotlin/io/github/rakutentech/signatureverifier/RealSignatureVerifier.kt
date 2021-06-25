@@ -1,6 +1,8 @@
 package io.github.rakutentech.signatureverifier
 
 import android.util.Base64
+import com.rakuten.tech.mobile.manifestconfig.annotations.ManifestConfig
+import com.rakuten.tech.mobile.manifestconfig.annotations.MetaData
 import io.github.rakutentech.signatureverifier.verification.PublicKeyCache
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -24,24 +26,21 @@ internal class RealSignatureVerifier(
     @SuppressWarnings("LabeledExpression")
     override suspend fun verify(publicKeyId: String, data: InputStream, signature: String) =
         withContext(dispatcher) {
-
             // always return false when EncryptedSharedPreferences was not initialized
             // due to keystore validation.
             val key = cache[publicKeyId] ?: return@withContext false
 
-            val isVerified = Signature.getInstance("SHA256withECDSA")
-                .apply {
-                    initVerify(rawToEncodedECPublicKey(key))
+            val isVerified = Signature.getInstance("SHA256withECDSA").apply {
+                initVerify(rawToEncodedECPublicKey(key))
 
-                    val buffer = ByteArray(SIXTEEN_KILOBYTES)
-                    var read = data.read(buffer)
-                    while (read != -1) {
-                        update(buffer, 0, read)
+                val buffer = ByteArray(SIXTEEN_KILOBYTES)
+                var read = data.read(buffer)
+                while (read != -1) {
+                    update(buffer, 0, read)
 
-                        read = data.read(buffer)
-                    }
+                    read = data.read(buffer)
                 }
-                .verify(Base64.decode(signature, Base64.DEFAULT))
+            }.verify(Base64.decode(signature, Base64.DEFAULT))
 
             if (!isVerified) {
                 cache.remove(publicKeyId)
@@ -81,5 +80,21 @@ internal class RealSignatureVerifier(
 
         private const val UNCOMPRESSED_OFFSET = 1
         private const val POSITIVE_BIG_INTEGER = 1
+    }
+
+    @ManifestConfig
+    internal interface App {
+
+        /**
+         * Base URL for the Public Key API.
+         **/
+        @MetaData(key = "io.github.rakutentech.signatureverifier.RSVKeyFetchEndpoint")
+        fun baseUrl(): String
+
+        /**
+         * RAS Subscription Key for Public Key API.
+         **/
+        @MetaData(key = "io.github.rakutentech.signatureverifier.RASProjectSubscriptionKey")
+        fun subscriptionKey(): String
     }
 }

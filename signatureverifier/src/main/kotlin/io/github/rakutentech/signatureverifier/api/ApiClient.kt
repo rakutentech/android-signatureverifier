@@ -8,14 +8,20 @@ import okhttp3.Request
 import okhttp3.Response
 import java.lang.IllegalArgumentException
 
-internal class ApiClient(baseUrl: String, context: Context) {
+internal class ApiClient(baseUrl: String, subscriptionKey: String, context: Context) {
 
     @Suppress("SpreadOperator")
     private val client = OkHttpClient.Builder()
         .cache(Cache(context.cacheDir,
             CACHE_SIZE
         ))
+        .addNetworkInterceptor {
+            val requestBuilder = it.request().newBuilder()
+            requestBuilder.addHeader("apiKey", "ras-$subscriptionKey")
+            it.proceed(requestBuilder.build())
+        }
         .build()
+
     private val requestUrl = try {
         baseUrl.toHttpUrl()
     } catch (exception: IllegalArgumentException) {
@@ -44,7 +50,7 @@ internal class ApiClient(baseUrl: String, context: Context) {
 
 /**
  * Exception thrown when the value set in `AndroidManifest.xml` for
- * `io.github.rakutentech.signatureverifier.baseurl` is not a valid URL.
+ * `io.github.rakutentech.signatureverifier.RSVKeyFetchEndpoint` is not a valid URL.
  */
 class InvalidSignatureVerifierBaseUrlException(
     exception: IllegalArgumentException
