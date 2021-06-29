@@ -29,7 +29,12 @@ internal data class PublicKeyResponse(
         @SuppressWarnings("SwallowedException")
         fun fromJsonString(body: String): PublicKeyResponse {
             return try {
-                Gson().fromJson(body, PublicKeyResponse::class.java)
+                val response = Gson().fromJson(body, PublicKeyResponse::class.java)
+                if (response.ecKey == null || response.id == null) {
+                    PublicKeyResponse("", "", "")
+                } else {
+                    response
+                }
             } catch (jex: JsonSyntaxException) {
                 PublicKeyResponse("", "", "")
             }

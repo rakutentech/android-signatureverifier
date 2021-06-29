@@ -22,12 +22,13 @@ import javax.crypto.spec.GCMParameterSpec
 open class AesEncryptorSpec : RobolectricBaseSpec() {
 
     internal val mockKeyStore = Mockito.mock(KeyStore::class.java)
-    internal val mockKeyGenerator = Mockito.mock(AesKeyGenerator::class.java)
+    private val mockKeyGenerator = Mockito.mock(AesKeyGenerator::class.java)
     private val mockKeyEntry = Mockito.mock(KeyStore.SecretKeyEntry::class.java)
 
     @Before
     open fun setup() {
         val key = generateAesKey()
+        SignatureVerifier.callback = null
         When calling mockKeyGenerator.generateKey() itReturns key
         When calling mockKeyEntry.secretKey itReturns key
         When calling mockKeyStore.getEntry(any(), anyOrNull()) itReturns mockKeyEntry
@@ -86,7 +87,7 @@ open class AesEncryptorSpec : RobolectricBaseSpec() {
         val encryptor = createAesEncryptor()
         encryptor.encrypt("test data")
 
-        Verify on mockKeyGenerator that mockKeyGenerator.generateKey() was called
+        Mockito.verify(mockKeyGenerator).generateKey()
     }
 
     internal fun createAesEncryptor(
@@ -99,7 +100,6 @@ open class AesEncryptorSpec : RobolectricBaseSpec() {
         kgen.init(256)
         return kgen.generateKey()
     }
-
 }
 
 class AesEncryptorExceptionSpec : AesEncryptorSpec() {

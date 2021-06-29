@@ -17,6 +17,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
+@SuppressWarnings("TooGenericExceptionCaught")
 internal class AesEncryptor @VisibleForTesting constructor(
     private val keyStore: KeyStore?,
     private val keyGenerator: AesKeyGenerator
@@ -108,6 +109,7 @@ internal class AesKeyGenerator(
     private val provider: String
 ) {
 
+    @SuppressWarnings("TooGenericExceptionCaught")
     fun generateKey(): SecretKey? {
         return try {
             val algorithmSpec = KeyGenParameterSpec.Builder(alias, PURPOSE)

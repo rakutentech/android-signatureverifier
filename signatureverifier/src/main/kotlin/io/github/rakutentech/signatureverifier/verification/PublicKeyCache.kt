@@ -1,8 +1,9 @@
 package io.github.rakutentech.signatureverifier.verification
 
 import android.content.Context
-import android.util.Log
+import androidx.annotation.VisibleForTesting
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.rakutentech.signatureverifier.SignatureVerifier
 import io.github.rakutentech.signatureverifier.api.PublicKeyFetcher
 import java.io.File
@@ -11,7 +12,8 @@ internal class PublicKeyCache(
     private val keyFetcher: PublicKeyFetcher,
     context: Context,
     baseUrl: String,
-    encryptor: AesEncryptor? = null
+    encryptor: AesEncryptor? = null,
+    testKeys: MutableMap<String, String>? = null
 ) {
 
     private val encryptor: AesEncryptor by lazy { encryptor ?: AesEncryptor() }
@@ -23,22 +25,25 @@ internal class PublicKeyCache(
         val filepath = baseUrl.replace(Regex("[^a-zA-Z0-9]+"), ".").replace(Regex(".$"), "")
         File(
             context.noBackupFilesDir,
-            ("signature.keys.$filepath").substring(0, MAX_PATH)
+            ("signature.keys.$filepath").take(MAX_PATH)
         )
     }
 
-    private val keys: MutableMap<String, String> by lazy {
-        if (file.exists()) {
-            val text = file.readText()
+    @VisibleForTesting
+    internal val keys: MutableMap<String, String> by lazy {
+        testKeys
+            ?: if (file.exists()) {
+                val text = file.readText()
 
-            if (text.isNotBlank()) {
-                Gson().fromJson(text, keys.javaClass)
+                if (text.isNotBlank()) {
+                    val type = object : TypeToken<MutableMap<String, String>>() {}.type
+                    Gson().fromJson(text, type)
+                } else {
+                    mutableMapOf()
+                }
             } else {
                 mutableMapOf()
             }
-        } else {
-            mutableMapOf()
-        }
     }
 
     operator fun get(keyId: String): String {
@@ -57,8 +62,14 @@ internal class PublicKeyCache(
         file.writeText(Gson().toJson(keys))
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught")
     private fun fetch(keyId: String): String {
-        val key = keyFetcher.fetch(keyId)
+        val key = try {
+            keyFetcher.fetch(keyId)
+        } catch (ex: Exception) {
+            SignatureVerifier.callback?.let { it(ex) }
+            ""
+        }
         encryptor.encrypt(key)?.let {
             keys[keyId] = it
             file.writeText(Gson().toJson(keys))
