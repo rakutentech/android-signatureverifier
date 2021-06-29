@@ -85,7 +85,7 @@ open class RealSignatureVerifierSpec : RobolectricBaseSpec() {
     @Test
     fun `should return false if master key validation failed`() = runBlockingTest {
         val verifier = RealSignatureVerifier(
-            PublicKeyCache(mockFetcher, ApplicationProvider.getApplicationContext()),
+            PublicKeyCache(mockFetcher, ApplicationProvider.getApplicationContext(), "test"),
             TestCoroutineDispatcher())
 
         verifier.verify(

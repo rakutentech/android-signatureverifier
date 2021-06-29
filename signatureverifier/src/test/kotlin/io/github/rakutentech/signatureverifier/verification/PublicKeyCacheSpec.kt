@@ -17,12 +17,12 @@ import java.io.IOException
 class PublicKeyCacheSpec : RobolectricBaseSpec() {
 
     private val mockFetcher = Mockito.mock(PublicKeyFetcher::class.java)
-    private val mockEncryptor = Mockito.mock(SharedPreferenceEncryptor::class.java)
+    private val mockEncryptor = Mockito.mock(AesEncryptor::class.java)
 
     @Before
     fun setup() {
         When calling mockFetcher.fetch("test_key_id") itReturns "test_public_key"
-        When calling mockEncryptor.getEncryptedKey(any()) itReturns "test_public_key"
+        When calling mockEncryptor.encrypt(any()) itReturns "test_public_key"
     }
 
     @Test
@@ -36,7 +36,7 @@ class PublicKeyCacheSpec : RobolectricBaseSpec() {
     @Test
     fun `should call fetcher for key id that is not cached`() {
         val cache = createCache()
-        When calling mockEncryptor.getEncryptedKey(any()) itReturns null
+        When calling mockEncryptor.encrypt(any()) itReturns null
 
         cache["test_key_id"] shouldBeEqualTo "test_public_key"
         Mockito.verify(mockFetcher).fetch(eq("test_key_id"))
@@ -45,7 +45,7 @@ class PublicKeyCacheSpec : RobolectricBaseSpec() {
     @Test
     fun `should return null when key fetcher failed`() {
         val cache = createCache()
-        When calling mockEncryptor.getEncryptedKey(any()) itReturns null
+        When calling mockEncryptor.encrypt(any()) itReturns null
         When calling mockFetcher.fetch(eq("test_key_id")) itThrows IOException("test")
 
         cache["test_key_id"].shouldBeNull()
@@ -55,26 +55,18 @@ class PublicKeyCacheSpec : RobolectricBaseSpec() {
     @Test
     fun `should cache the public key between App launches`() {
         val cache = createCache()
-        When calling mockEncryptor.getEncryptedKey(any()) itReturns null
+        When calling mockEncryptor.encrypt(any()) itReturns null
 
         // fetched and cached
         cache["test_key_id"] shouldBeEqualTo "test_public_key"
         Mockito.verify(mockFetcher).fetch(eq("test_key_id"))
 
-        When calling mockEncryptor.getEncryptedKey(any()) itReturns "test_public_key"
+        When calling mockEncryptor.encrypt(any()) itReturns "test_public_key"
 
         val secondCache = createCache()
 
         secondCache["test_key_id"] shouldBeEqualTo "test_public_key"
         Mockito.verify(mockFetcher).fetch(eq("test_key_id"))
-    }
-
-    @Test
-    fun `should set sharepreference value to null key is removed`() {
-        val cache = createCache()
-
-        cache.remove("test_key_id")
-        Mockito.verify(mockEncryptor).putEncryptedKey(eq("test_key_id"), isNull())
     }
 
     @Test
@@ -98,6 +90,6 @@ class PublicKeyCacheSpec : RobolectricBaseSpec() {
     private fun createCache(
         fetcher: PublicKeyFetcher = mockFetcher,
         context: Context = ApplicationProvider.getApplicationContext(),
-        encryptor: SharedPreferenceEncryptor? = mockEncryptor
-    ) = PublicKeyCache(fetcher, context, encryptor)
+        encryptor: AesEncryptor? = mockEncryptor
+    ) = PublicKeyCache(fetcher, context, "test", encryptor)
 }

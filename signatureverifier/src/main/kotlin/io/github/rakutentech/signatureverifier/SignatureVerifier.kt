@@ -23,6 +23,7 @@ abstract class SignatureVerifier {
 
     companion object {
         private var instance: SignatureVerifier = NotInitializedSignatureVerifier()
+        internal var callback: ((ex: Exception) -> Unit)? = null
 
         /**
          * Instance of [SignatureVerifier].
@@ -40,7 +41,7 @@ abstract class SignatureVerifier {
          */
         @SuppressWarnings("LongMethod", "TooGenericExceptionCaught")
         fun init(context: Context, errorCallback: ((ex: Exception) -> Unit)? = null): Boolean {
-
+            callback = errorCallback
             return try {
                 val manifestConfig = AppManifestConfig(context)
 
@@ -53,14 +54,15 @@ abstract class SignatureVerifier {
                 instance = RealSignatureVerifier(
                     PublicKeyCache(
                         keyFetcher = PublicKeyFetcher(client),
-                        context = context
+                        context = context,
+                        baseUrl = manifestConfig.baseUrl()
                     )
                 )
                 true
             } catch (ex: Exception) {
                 // reset instance
                 setUninitializedInstance()
-                errorCallback?.let {
+                callback?.let {
                     it(SignatureVerifierException("Signature Verifier initialization failed", ex))
                 }
                 false
