@@ -1,6 +1,9 @@
 package io.github.rakutentech.signatureverifier
 
+import android.content.Context
 import androidx.annotation.VisibleForTesting
+import io.github.rakutentech.signatureverifier.api.ApiClient
+import io.github.rakutentech.signatureverifier.api.PublicKeyFetcher
 import io.github.rakutentech.signatureverifier.verification.PublicKeyCache
 import java.io.InputStream
 
@@ -29,8 +32,39 @@ abstract class SignatureVerifier {
         @JvmStatic
         fun instance(): SignatureVerifier = instance
 
-        internal fun init(cache: PublicKeyCache) {
-            instance = RealSignatureVerifier(cache)
+        /**
+         * Initializes the Signature Verifiers SDK. [errorCallback] is an optional callback function
+         * for app to receive the exception that caused failed init.
+         *
+         * @return `true` if initialization is successful, and `false` otherwise.
+         */
+        @SuppressWarnings("LongMethod", "TooGenericExceptionCaught")
+        fun init(context: Context, errorCallback: ((ex: Exception) -> Unit)? = null): Boolean {
+
+            return try {
+                val manifestConfig = AppManifestConfig(context)
+
+                val client = ApiClient(
+                    baseUrl = manifestConfig.baseUrl(),
+                    subscriptionKey = manifestConfig.subscriptionKey(),
+                    context = context
+                )
+
+                instance = RealSignatureVerifier(
+                    PublicKeyCache(
+                        keyFetcher = PublicKeyFetcher(client),
+                        context = context
+                    )
+                )
+                true
+            } catch (ex: Exception) {
+                // reset instance
+                setUninitializedInstance()
+                errorCallback?.let {
+                    it(SignatureVerifierException("Signature Verifier initialization failed", ex))
+                }
+                false
+            }
         }
 
         @VisibleForTesting
@@ -43,3 +77,9 @@ abstract class SignatureVerifier {
 internal class NotInitializedSignatureVerifier : SignatureVerifier() {
     override suspend fun verify(publicKeyId: String, data: InputStream, signature: String) = false
 }
+
+/**
+ * Custom exception for Signature Verifier SDK.
+ */
+class SignatureVerifierException(name: String, cause: Throwable? = null) :
+    RuntimeException(name, cause)

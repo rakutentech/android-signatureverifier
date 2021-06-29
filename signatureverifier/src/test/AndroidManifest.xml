@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.github.rakutentech.signatureverifier">
+
+    <application>
+        <meta-data
+            android:name="io.github.rakutentech.signatureverifier.RSVKeyFetchEndpoint"
+            android:value="http://sample.endpoint"/>
+        <meta-data
+            android:name="io.github.rakutentech.signatureverifier.RASProjectSubscriptionKey"
+            android:value="test_key"/>
+    </application>
+
+</manifest>

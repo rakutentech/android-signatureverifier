@@ -1,13 +1,14 @@
 package io.github.rakutentech.signatureverifier.api
 
-import io.github.rakutentech.signatureverifier.jsonAdapter
-import com.squareup.moshi.JsonClass
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import java.io.IOException
 
 internal class PublicKeyFetcher(private val client: ApiClient) {
 
+    @Throws(IOException::class)
     fun fetch(keyId: String): String {
-        val response = client.fetchPath("keys/$keyId", null)
+        val response = client.fetchPath(keyId, null)
 
         if (!response.isSuccessful) {
             throw IOException("Unexpected response when fetching public key: $response")
@@ -15,17 +16,23 @@ internal class PublicKeyFetcher(private val client: ApiClient) {
 
         val body = response.body!!.string() // Body is never null if request is successful
 
-        return PublicKeyResponse.fromJsonString(body).key
+        return PublicKeyResponse.fromJsonString(body).ecKey ?: ""
     }
 }
 
-@JsonClass(generateAdapter = true)
 internal data class PublicKeyResponse(
-    val id: String,
-    val key: String,
-    val createdAt: String
+    val id: String?,
+    val ecKey: String?,
+    val pemKey: String?
 ) {
     companion object {
-        fun fromJsonString(body: String) = jsonAdapter<PublicKeyResponse>().fromJson(body)!!
+        @SuppressWarnings("SwallowedException")
+        fun fromJsonString(body: String): PublicKeyResponse {
+            return try {
+                Gson().fromJson(body, PublicKeyResponse::class.java)
+            } catch (jex: JsonSyntaxException) {
+                PublicKeyResponse("", "", "")
+            }
+        }
     }
 }

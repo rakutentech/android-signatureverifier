@@ -39,15 +39,15 @@ class PublicKeyFetcherNormalSpec : PublicKeyFetcherSpec() {
 
     private fun enqueueSuccessResponse(
         id: String = "test_id",
-        key: String = "test_key",
-        createdAt: String = "2019-07-23T07:24:57+00:00"
+        ecKey: String = "test_key",
+        pemKey: String = "test_pemkey"
     ) {
         enqueueResponse(
             body = """
                 {
                     "id": "$id",
-                    "key": "$key",
-                    "createdAt": "$createdAt"
+                    "ecKey": "$ecKey",
+                    "pemKey": "$pemKey"
                 }
             """.trimIndent(),
             code = 200
@@ -57,7 +57,7 @@ class PublicKeyFetcherNormalSpec : PublicKeyFetcherSpec() {
     @Test
     fun `should fetch the public key`() {
         val fetcher = createFetcher()
-        enqueueSuccessResponse(key = "test_key")
+        enqueueSuccessResponse(ecKey = "test_key")
 
         fetcher.fetch("test_key_id") shouldBeEqualTo "test_key"
     }
@@ -70,8 +70,25 @@ class PublicKeyFetcherNormalSpec : PublicKeyFetcherSpec() {
         fetcher.fetch("test_key_id")
 
         Verify on mockApiClient that mockApiClient.fetchPath(argForWhich {
-            contains("keys/test_key_id")
+            contains("test_key_id")
         }, eq(null))
+    }
+
+    @Test
+    fun `should parse response correctly`() {
+        val response = PublicKeyResponse.fromJsonString(SAMPLE_RESPONSE)
+        response.id shouldBeEqualTo "test_id"
+        response.ecKey shouldBeEqualTo "test_key"
+        response.pemKey shouldBeEqualTo "test_pemKey"
+    }
+
+    companion object {
+        private val SAMPLE_RESPONSE =
+            """{
+                "id": "test_id",
+                "ecKey": "test_key",
+                "pemKey": "test_pemKey"
+            }""".trimIndent()
     }
 }
 
@@ -98,43 +115,43 @@ class PublicKeyFetcherErrorSpec : PublicKeyFetcherSpec() {
         fetcher.fetch("test_key_id")
     }
 
-    @Test(expected = Exception::class)
-    fun `should throw when the 'id' key is missing in response`() {
+    @Test
+    fun `should return valid key even if 'id' key is missing in response`() {
         enqueueErrorResponse(
             body = """{
-                "key": "test_key",
-                "createdAt": "test_created"
+                "ecKey": "test_key",
+                "pemKey": "test_pemKey"
             }""".trimIndent()
         )
         val fetcher = createFetcher()
 
-        fetcher.fetch("test_key_id")
+        fetcher.fetch("test_key_id") shouldBeEqualTo "test_key"
     }
 
-    @Test(expected = Exception::class)
-    fun `should throw when the 'key' key is missing in response`() {
+    @Test
+    fun `should return empty when the 'ecKey' key is missing in response`() {
         enqueueErrorResponse(
             body = """{
                 "id": "test_key_id",
-                "createdAt": "test_created"
+                "pemKey": "test_pemKey"
             }""".trimIndent()
         )
         val fetcher = createFetcher()
 
-        fetcher.fetch("test_key_id")
+        fetcher.fetch("test_key_id").shouldBeEmpty()
     }
 
-    @Test(expected = Exception::class)
-    fun `should throw when the 'createdAt' key is missing in response`() {
+    @Test
+    fun `should return valid key even if 'pemKey' key is missing in response`() {
         enqueueErrorResponse(
             body = """{
                 "id": "test_key_id",
-                "key": "test_key"
+                "ecKey": "test_key"
             }""".trimIndent()
         )
         val fetcher = createFetcher()
 
-        fetcher.fetch("test_key_id")
+        fetcher.fetch("test_key_id") shouldBeEqualTo "test_key"
     }
 
     @Test(expected = IOException::class)
@@ -144,6 +161,7 @@ class PublicKeyFetcherErrorSpec : PublicKeyFetcherSpec() {
         val fetcher = PublicKeyFetcher(
             ApiClient(
                 "https://www.example.com",
+                "key",
                 ApplicationProvider.getApplicationContext(),
             )
         )
@@ -157,8 +175,8 @@ class PublicKeyFetcherErrorSpec : PublicKeyFetcherSpec() {
         enqueueErrorResponse(
             body = """{
                 "id": "test_id",
-                "key": "test_key",
-                "createdAt": "test_created",
+                "ecKey": "test_key",
+                "pemKey": "test_pemKey",
                 "randomKey": "random_value"
             }""".trimIndent()
         )
@@ -170,5 +188,22 @@ class PublicKeyFetcherErrorSpec : PublicKeyFetcherSpec() {
             TestCase.fail("Should not throw an exception.")
             throw e
         }
+    }
+
+    @Test
+    fun `should be empty if invalid json format`() {
+        val response = PublicKeyResponse.fromJsonString(INVALID_RESPONSE)
+        response.id?.shouldBeEmpty()
+        response.ecKey?.shouldBeEmpty()
+        response.ecKey?.shouldBeEmpty()
+    }
+
+    companion object {
+        private val INVALID_RESPONSE =
+            """{
+                "some": "test_id",
+                "other": "test_key",
+                "values": "test
+            }""".trimIndent()
     }
 }

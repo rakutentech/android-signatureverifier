@@ -9,10 +9,10 @@ import io.github.rakutentech.signatureverifier.RobolectricBaseSpec
 import io.github.rakutentech.signatureverifier.api.PublicKeyFetcher
 import org.amshove.kluent.*
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
 import org.mockito.Mockito
 import org.robolectric.annotation.Config
+import java.io.IOException
 
 class PublicKeyCacheSpec : RobolectricBaseSpec() {
 
@@ -34,11 +34,21 @@ class PublicKeyCacheSpec : RobolectricBaseSpec() {
     }
 
     @Test
-    fun `should call fetcher fo a key id that is not cached`() {
+    fun `should call fetcher for key id that is not cached`() {
         val cache = createCache()
         When calling mockEncryptor.getEncryptedKey(any()) itReturns null
 
         cache["test_key_id"] shouldBeEqualTo "test_public_key"
+        Mockito.verify(mockFetcher).fetch(eq("test_key_id"))
+    }
+
+    @Test
+    fun `should return null when key fetcher failed`() {
+        val cache = createCache()
+        When calling mockEncryptor.getEncryptedKey(any()) itReturns null
+        When calling mockFetcher.fetch(eq("test_key_id")) itThrows IOException("test")
+
+        cache["test_key_id"].shouldBeNull()
         Mockito.verify(mockFetcher).fetch(eq("test_key_id"))
     }
 
