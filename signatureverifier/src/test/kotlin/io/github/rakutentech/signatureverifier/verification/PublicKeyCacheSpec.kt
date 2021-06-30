@@ -64,7 +64,7 @@ class PublicKeyCacheSpec : RobolectricBaseSpec() {
         When calling mockEncryptor.encrypt(any(), any()) itReturns null
         When calling mockFetcher.fetch(eq("test_key_id")) itThrows IOException("test")
 
-        cache["test_key_id"].shouldBeEmpty()
+        cache["test_key_id"].shouldBeNull()
         Mockito.verify(mockFetcher).fetch(eq("test_key_id"))
         Mockito.verify(mockCallback).invoke(any(IOException::class))
     }

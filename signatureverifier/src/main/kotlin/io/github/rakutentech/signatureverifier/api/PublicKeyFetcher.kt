@@ -16,27 +16,27 @@ internal class PublicKeyFetcher(private val client: ApiClient) {
 
         val body = response.body!!.string() // Body is never null if request is successful
 
-        return PublicKeyResponse.fromJsonString(body).ecKey ?: ""
+        return PublicKeyResponse.fromJsonString(body).ecKey
     }
 }
 
 internal data class PublicKeyResponse(
-    val id: String?,
-    val ecKey: String?,
-    val pemKey: String?
+    val id: String = "",
+    val ecKey: String = "",
+    val pemKey: String = ""
 ) {
     companion object {
         @SuppressWarnings("SwallowedException")
         fun fromJsonString(body: String): PublicKeyResponse {
             return try {
                 val response = Gson().fromJson(body, PublicKeyResponse::class.java)
-                if (response.ecKey == null || response.id == null) {
-                    PublicKeyResponse("", "", "")
+                if (response.id.isEmpty()) {
+                    PublicKeyResponse()
                 } else {
                     response
                 }
             } catch (jex: JsonSyntaxException) {
-                PublicKeyResponse("", "", "")
+                PublicKeyResponse()
             }
         }
     }
