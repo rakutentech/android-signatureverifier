@@ -1,7 +1,6 @@
 package io.github.rakutentech.signatureverifier
 
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 import io.github.rakutentech.signatureverifier.api.ApiClient
 import io.github.rakutentech.signatureverifier.api.PublicKeyFetcher
 import io.github.rakutentech.signatureverifier.verification.PublicKeyCache
@@ -22,62 +21,49 @@ abstract class SignatureVerifier {
     abstract suspend fun verify(publicKeyId: String, data: InputStream, signature: String): Boolean
 
     companion object {
-        private var instance: SignatureVerifier = NotInitializedSignatureVerifier()
         internal var callback: ((ex: Exception) -> Unit)? = null
 
         /**
-         * Instance of [SignatureVerifier].
+         * Initializes and instance of the Signature Verifiers SDK based on the provided parameters.
          *
-         * @return [SignatureVerifier] instance
-         */
-        @JvmStatic
-        fun instance(): SignatureVerifier = instance
-
-        /**
-         * Initializes the Signature Verifiers SDK. [errorCallback] is an optional callback function
-         * for app to receive the exception that caused failed init.
+         * @param [context] application context
+         * @param [baseUrl] endpoint used for public key fetching
+         * @param [subscriptionKey] authorization key for the public key fetching endpoint
+         * @param [errorCallback] optional callback function for app to receive any exception occurred in the SDK.
          *
-         * @return `true` if initialization is successful, and `false` otherwise.
+         * @return `instance` if initialization is successful, and `null` otherwise.
          */
         @SuppressWarnings("LongMethod", "TooGenericExceptionCaught")
-        fun init(context: Context, errorCallback: ((ex: Exception) -> Unit)? = null): Boolean {
+        fun init(
+            context: Context,
+            baseUrl: String,
+            subscriptionKey: String,
+            errorCallback: ((ex: Exception) -> Unit)? = null
+        ): SignatureVerifier? {
             callback = errorCallback
             return try {
-                val manifestConfig = AppManifestConfig(context)
 
                 val client = ApiClient(
-                    baseUrl = manifestConfig.baseUrl(),
-                    subscriptionKey = manifestConfig.subscriptionKey(),
+                    baseUrl = baseUrl,
+                    subscriptionKey = subscriptionKey,
                     context = context
                 )
 
-                instance = RealSignatureVerifier(
+                RealSignatureVerifier(
                     PublicKeyCache(
                         keyFetcher = PublicKeyFetcher(client),
                         context = context,
-                        baseUrl = manifestConfig.baseUrl()
+                        baseUrl = baseUrl
                     )
                 )
-                true
             } catch (ex: Exception) {
-                // reset instance
-                setUninitializedInstance()
                 callback?.let {
                     it(SignatureVerifierException("Signature Verifier initialization failed", ex))
                 }
-                false
+                null
             }
         }
-
-        @VisibleForTesting
-        internal fun setUninitializedInstance() {
-            instance = NotInitializedSignatureVerifier()
-        }
     }
-}
-
-internal class NotInitializedSignatureVerifier : SignatureVerifier() {
-    override suspend fun verify(publicKeyId: String, data: InputStream, signature: String) = false
 }
 
 /**

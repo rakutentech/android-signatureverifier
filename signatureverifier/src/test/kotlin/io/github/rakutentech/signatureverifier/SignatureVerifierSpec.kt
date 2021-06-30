@@ -2,57 +2,78 @@ package io.github.rakutentech.signatureverifier
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
 import org.amshove.kluent.any
-import org.amshove.kluent.shouldBeFalse
 import org.amshove.kluent.shouldBeInstanceOf
-import org.amshove.kluent.shouldBeTrue
+import org.amshove.kluent.shouldBeNull
+import org.amshove.kluent.shouldNotBeNull
 import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mockito
-import java.io.InputStream
 
 class SignatureVerifierSpec : RobolectricBaseSpec() {
 
-    @Test
-    fun `should initialize instance with RealSignatureVerifier`() {
-        SignatureVerifier.init(ApplicationProvider.getApplicationContext()).shouldBeTrue()
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val function: (ex: Exception) -> Unit = {}
+    private val mockCb = Mockito.mock(function.javaClass)
 
-        SignatureVerifier.instance() shouldBeInstanceOf RealSignatureVerifier::class
+    @Test
+    fun `should initialize instance with correct parameters`() {
+        val instance = SignatureVerifier.init(context, BASE_URL, SUB_KEY)
+
+        instance.shouldNotBeNull()
+        instance shouldBeInstanceOf RealSignatureVerifier::class
     }
 
     @Test
-    fun `should initialize instance with RealSignatureVerifier with callback`() {
-        SignatureVerifier.init(ApplicationProvider.getApplicationContext()) {
+    fun `should initialize instance with correct parameters with callback`() {
+        val instance = SignatureVerifier.init(context, BASE_URL, SUB_KEY) {
             Assert.fail()
-        }.shouldBeTrue()
+        }
 
-        SignatureVerifier.instance() shouldBeInstanceOf RealSignatureVerifier::class
-    }
-
-    @ExperimentalCoroutinesApi
-    @Test
-    fun `should instance of NotInitializedSignatureVerifier when not initialized`() = runBlockingTest {
-        SignatureVerifier.setUninitializedInstance()
-        SignatureVerifier.instance() shouldBeInstanceOf NotInitializedSignatureVerifier::class
-        SignatureVerifier.instance().verify("any",
-            Mockito.mock(InputStream::class.java), "signature").shouldBeFalse()
+        instance.shouldNotBeNull()
+        instance shouldBeInstanceOf RealSignatureVerifier::class
     }
 
     @Test
-    fun `should return false initialization failed`() {
+    fun `should return null initialization failed due to context`() {
         val mockContext = Mockito.mock(Context::class.java)
-        SignatureVerifier.init(mockContext).shouldBeFalse()
+        SignatureVerifier.init(mockContext, BASE_URL, SUB_KEY).shouldBeNull()
     }
 
     @Test
-    fun `should return false initialization failed with callback`() {
+    fun `should return null initialization failed due to context with callback`() {
         val mockContext = Mockito.mock(Context::class.java)
-        val function: (ex: Exception) -> Unit = {}
-        val mockCallback = Mockito.mock(function.javaClass)
-        SignatureVerifier.init(mockContext, mockCallback).shouldBeFalse()
+        SignatureVerifier.init(mockContext, BASE_URL, SUB_KEY, mockCb).shouldBeNull()
 
-        Mockito.verify(mockCallback).invoke(any())
+        Mockito.verify(mockCb).invoke(any())
+    }
+
+    @Test
+    fun `should return null initialization failed due to invalid endpoint`() {
+        SignatureVerifier.init(context, "", SUB_KEY).shouldBeNull()
+    }
+
+    @Test
+    fun `should return null initialization failed due to invalid endpoint with callback`() {
+        SignatureVerifier.init(context, "", SUB_KEY, mockCb).shouldBeNull()
+
+        Mockito.verify(mockCb).invoke(any(SignatureVerifierException::class))
+    }
+
+    @Test
+    fun `should return null initialization failed due to invalid key`() {
+        SignatureVerifier.init(context, BASE_URL, "").shouldBeNull()
+    }
+
+    @Test
+    fun `should return null initialization failed due to invalid key with callback`() {
+        SignatureVerifier.init(context, BASE_URL, "", mockCb).shouldBeNull()
+
+        Mockito.verify(mockCb).invoke(any(SignatureVerifierException::class))
+    }
+
+    companion object {
+        private const val BASE_URL = "http://sample.com"
+        private const val SUB_KEY = "test_key"
     }
 }
