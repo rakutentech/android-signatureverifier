@@ -84,7 +84,7 @@ When a public key is fetched using the provided `publicKeyId`, it is encrypted t
 
 If the same `publicKeyId` is used on another `verify` API call, the SDK will use the decrypted cached value for verification to avoid multiple backend requests.
 
-On a rare case that the encryption algorithm fails, possibly due to some [`KeyStoreException`](https://developer.android.com/reference/java/security/KeyStoreException), the SDK will fetch the public key again from the provided endpoint to be used for verification.
+On a rare case that the encryption algorithm fails, possibly due to some [`KeyStoreException`](https://developer.android.com/reference/java/security/KeyStoreException), the SDK will refetch the public key from the provided endpoint.
 
 ## <a name="changelog"></a> Changelog
 
