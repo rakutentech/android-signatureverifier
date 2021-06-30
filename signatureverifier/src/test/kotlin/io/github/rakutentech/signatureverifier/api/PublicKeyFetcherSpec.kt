@@ -116,7 +116,7 @@ class PublicKeyFetcherErrorSpec : PublicKeyFetcherSpec() {
     }
 
     @Test
-    fun `should return valid key even if 'id' key is missing in response`() {
+    fun `should return empty even if 'id' key is missing in response`() {
         enqueueErrorResponse(
             body = """{
                 "ecKey": "test_key",
@@ -125,7 +125,7 @@ class PublicKeyFetcherErrorSpec : PublicKeyFetcherSpec() {
         )
         val fetcher = createFetcher()
 
-        fetcher.fetch("test_key_id") shouldBeEqualTo "test_key"
+        fetcher.fetch("test_key_id").shouldBeEmpty()
     }
 
     @Test
@@ -193,9 +193,9 @@ class PublicKeyFetcherErrorSpec : PublicKeyFetcherSpec() {
     @Test
     fun `should be empty if invalid json format`() {
         val response = PublicKeyResponse.fromJsonString(INVALID_RESPONSE)
-        response.id?.shouldBeEmpty()
-        response.ecKey?.shouldBeEmpty()
-        response.ecKey?.shouldBeEmpty()
+        response.id.shouldBeEmpty()
+        response.ecKey.shouldBeEmpty()
+        response.ecKey.shouldBeEmpty()
     }
 
     companion object {

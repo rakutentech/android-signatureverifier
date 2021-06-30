@@ -1,6 +1,5 @@
 package io.github.rakutentech.signatureverifier.verification
 
-import androidx.test.core.app.ApplicationProvider
 import io.github.rakutentech.signatureverifier.RealSignatureVerifier
 import io.github.rakutentech.signatureverifier.RobolectricBaseSpec
 import io.github.rakutentech.signatureverifier.api.PublicKeyFetcher
@@ -83,20 +82,19 @@ open class RealSignatureVerifierSpec : RobolectricBaseSpec() {
     }
 
     @Test
-    fun `should return false if master key validation failed`() = runBlockingTest {
-        val verifier = RealSignatureVerifier(
-            PublicKeyCache(mockFetcher, ApplicationProvider.getApplicationContext()),
-            TestCoroutineDispatcher())
+    fun `should not verify the signature when message has been modified`() = runBlockingTest {
+        val verifier = RealSignatureVerifier(mockPublicKeyCache, TestCoroutineDispatcher())
 
         verifier.verify(
             KEY_ID,
-            BODY.byteInputStream(),
+            "wrong message".byteInputStream(),
             SIGNATURE
         ) shouldBeEqualTo false
     }
 
     @Test
-    fun `should not verify the signature when message has been modified`() = runBlockingTest {
+    fun `should not verify the signature cache returns null`() = runBlockingTest {
+        When calling mockPublicKeyCache[KEY_ID] itReturns null
         val verifier = RealSignatureVerifier(mockPublicKeyCache, TestCoroutineDispatcher())
 
         verifier.verify(
