@@ -193,9 +193,9 @@ class PublicKeyFetcherErrorSpec : PublicKeyFetcherSpec() {
     @Test
     fun `should be empty if invalid json format`() {
         val response = PublicKeyResponse.fromJsonString(INVALID_RESPONSE)
-        response.id?.shouldBeEmpty()
-        response.ecKey?.shouldBeEmpty()
-        response.ecKey?.shouldBeEmpty()
+        response.id.shouldBeEmpty()
+        response.ecKey.shouldBeEmpty()
+        response.ecKey.shouldBeEmpty()
     }
 
     companion object {

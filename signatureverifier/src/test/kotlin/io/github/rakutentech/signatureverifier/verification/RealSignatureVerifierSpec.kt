@@ -91,4 +91,16 @@ open class RealSignatureVerifierSpec : RobolectricBaseSpec() {
             SIGNATURE
         ) shouldBeEqualTo false
     }
+
+    @Test
+    fun `should not verify the signature cache returns null`() = runBlockingTest {
+        When calling mockPublicKeyCache[KEY_ID] itReturns null
+        val verifier = RealSignatureVerifier(mockPublicKeyCache, TestCoroutineDispatcher())
+
+        verifier.verify(
+            KEY_ID,
+            "wrong message".byteInputStream(),
+            SIGNATURE
+        ) shouldBeEqualTo false
+    }
 }

@@ -141,7 +141,7 @@ internal data class AesEncryptedData(
     val encryptedData: String
 ) {
 
-    fun toJsonString() = Gson().toJson(this) ?: ""
+    fun toJsonString(): String = Gson().toJson(this)
 
     companion object {
         private const val TAG = "RSV_AesEncryptedData"

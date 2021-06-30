@@ -46,7 +46,7 @@ internal class PublicKeyCache(
             }
     }
 
-    operator fun get(keyId: String): String {
+    operator fun get(keyId: String): String? {
         val encryptedKey = keys[keyId]
 
         return if (encryptedKey != null) {
@@ -63,16 +63,18 @@ internal class PublicKeyCache(
     }
 
     @SuppressWarnings("TooGenericExceptionCaught")
-    private fun fetch(keyId: String): String {
+    private fun fetch(keyId: String): String? {
         val key = try {
             keyFetcher.fetch(keyId)
         } catch (ex: Exception) {
             SignatureVerifier.callback?.let { it(ex) }
-            ""
+            null
         }
-        encryptor.encrypt(key)?.let {
-            keys[keyId] = it
-            file.writeText(Gson().toJson(keys))
+        if (!key.isNullOrEmpty()) {
+            encryptor.encrypt(key)?.let {
+                keys[keyId] = it
+                file.writeText(Gson().toJson(keys))
+            }
         }
 
         return key

@@ -1,5 +1,6 @@
 package io.github.rakutentech.signatureverifier.verification
 
+import com.google.gson.JsonParseException
 import com.nhaarman.mockitokotlin2.*
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.mock
@@ -38,16 +39,18 @@ open class AesEncryptorSpec : RobolectricBaseSpec() {
     fun `it should encrypt the data`() {
         val encryptor = createAesEncryptor()
 
-        encryptor.encrypt("test data").shouldNotBeNull()
-        encryptor.encrypt("test data")?.shouldNotContain("test data")
+        val data = encryptor.encrypt("test data")
+        data.shouldNotBeNull()
+        data.shouldNotContain("test data")
     }
 
     @Test
     fun `it should attach IV`() {
         val encryptor = createAesEncryptor()
 
-        encryptor.encrypt("test data").shouldNotBeNull()
-        encryptor.encrypt("test data")?.shouldContain("\"iv\":")
+        val data = encryptor.encrypt("test data")
+        data.shouldNotBeNull()
+        data.shouldContain("\"iv\":")
     }
 
     @Test
@@ -102,7 +105,7 @@ open class AesEncryptorSpec : RobolectricBaseSpec() {
     }
 }
 
-class AesEncryptorExceptionSpec : AesEncryptorSpec() {
+open class AesEncryptorExceptionSpec : AesEncryptorSpec() {
 
     private val function: (ex: Exception) -> Unit = {}
     private val mockCallback = Mockito.mock(function.javaClass)
@@ -176,5 +179,63 @@ class AesEncryptorExceptionSpec : AesEncryptorSpec() {
             encryptor.encrypt("test data").shouldBeNull()
             encryptor.decrypt("test data").shouldBeNull()
         }
+    }
+}
+
+class AesEncryptedDataSpec : RobolectricBaseSpec() {
+
+    @Before
+    fun setup() {
+        SignatureVerifier.callback = null
+    }
+
+    @Test
+    fun `should serialize empty string data is correctly`() {
+        val json = AesEncryptedData("", "").toJsonString()
+        json.shouldNotBeEmpty()
+
+        val data = AesEncryptedData.fromJsonString(json)
+        data.iv.shouldBeEmpty()
+        data.encryptedData.shouldBeEmpty()
+    }
+
+    @Test
+    fun `should return correct data`() {
+        val data = AesEncryptedData.fromJsonString(DATA)
+        data.iv shouldBeEqualTo "test_iv"
+        data.encryptedData shouldBeEqualTo "test_data"
+    }
+
+    @Test
+    fun `should return empty data when parsing failed`() {
+        val data = AesEncryptedData.fromJsonString(DATA_FAILED)
+        data.iv.shouldBeEmpty()
+        data.encryptedData.shouldBeEmpty()
+    }
+
+    @Test
+    fun `should return empty data when parsing failed with callback`() {
+        val function: (ex: Exception) -> Unit = {}
+        val mockCallback = Mockito.mock(function.javaClass)
+        SignatureVerifier.callback = mockCallback
+        val data = AesEncryptedData.fromJsonString(DATA_FAILED)
+        data.iv.shouldBeEmpty()
+        data.encryptedData.shouldBeEmpty()
+
+        Mockito.verify(mockCallback).invoke(any(JsonParseException::class))
+    }
+
+    companion object {
+        private val DATA =
+            """{
+                "iv": "test_iv",
+                "encryptedData": "test_data"
+            }""".trimIndent()
+
+        private val DATA_FAILED =
+            """{
+                "iv": "test_iv",
+                "encryptedData"
+            """.trimIndent()
     }
 }
