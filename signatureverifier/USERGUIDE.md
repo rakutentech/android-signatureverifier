@@ -9,14 +9,14 @@ Provides a security feature to verify any signed blob of data's authenticity aft
 ### This page covers:
 * [Requirements](#requirements)
 * [Getting Started](#getting-started)
-* [Advanced Features](#advanced-features)
+* [SDK Logic](#sdk-logic)
 * [Change Log](#changelog)
 
 ## <a name="requirements"></a> Requirements
 
 ### Supported Android Versions
 
-This SDK supports Android API level 21 (Lollipop) and above.
+This SDK supports Android API level 23 (Marshmallow) and above.
 
 ## <a name="getting-started"></a> Getting Started
 
@@ -32,16 +32,61 @@ dependency {
 }
 ```
 
-Note: please use/enable R8 to avoid proguard issue with Moshi. For enabling and more details on R8, please refer to the [Android Developer documentation](https://developer.android.com/studio/build/shrink-code).
+### #2 SDK usage
 
-### #2 Configure SDK settings in AndroidManifest.xml
+Create an instance of `SignatureVerifier` by providing the application `context`, endpoint URL for fetching public keys, and subscription key for authorization.
+* an optional callback function can be set to receive details on any exceptions/errors encountered by the SDK.
 
-TBD (in-progress)
+If there are any issues encountered during initialization, the `init` API will return null.
 
-## <a name="advanced-features"></a> Advanced Features
+* without callback
+```kotlin
+val instance = SignatureVerifier.init(
+    context = context,
+    baseUrl = "https://endpoint.url",
+    subscriptionKey = "endpoint-subscription-key")
+```
 
-TBD (in-progress)
+* with callback
+```kotlin
+val instance = SignatureVerifier.init(
+    context = context,
+    baseUrl = "https://endpoint.url",
+    subscriptionKey = "endpoint-subscription-key"
+    ) {
+        Log.e(TAG, it.localizedMessage, it)
+        // you can track or send this info to your analytics
+    }
+```
+
+Then use the created instance to verify the signature inside a `Coroutine` (`verify` API is a suspend function).
+
+The `verify` API requires 3 arguments, and will return `true` if `data` is verified:
+1. `publicKeyId: String` - ID of public key to be fetched.
+2. `data: InputStream` - Input stream of the data to be verified.
+3. `signature: String` - Signature to be verified encoded in base64.
+
+```kotlin
+CoroutineScope(Dispatchers.Main).launch {
+    val result = instance?.verify(
+        publicKeyId = "<your_public_id>",
+        data = stream,
+        signature = "<your_signature>"
+    )
+}
+```
+
+## <a name="sdk-logic"></a> SDK Logic
+
+### Caching
+
+When a public key is fetched using the provided `publicKeyId`, it is encrypted then stored in the SDK cache.
+
+If the same `publicKeyId` is used on another `verify` API call, the SDK will use the decrypted cached value for verification to avoid multiple backend requests.
+
+On a rare case that the encryption algorithm fails, possibly due to some [`KeyStoreException`](https://developer.android.com/reference/java/security/KeyStoreException), the SDK will fetch the public key again from the provided endpoint to be used for verification.
 
 ## <a name="changelog"></a> Changelog
 
-TBD (in-progress)
+### 1.0.0 (in-progress)
+* Initial release.
