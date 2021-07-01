@@ -24,7 +24,7 @@ abstract class SignatureVerifier {
         internal var callback: ((ex: Exception) -> Unit)? = null
 
         /**
-         * Initializes and instance of the Signature Verifiers SDK based on the provided parameters.
+         * Initializes an instance of the Signature Verifier SDK based on the provided parameters.
          *
          * @param [context] application context
          * @param [baseUrl] endpoint used for public key fetching
