@@ -10,6 +10,12 @@ import java.lang.IllegalArgumentException
 
 internal class ApiClient(baseUrl: String, subscriptionKey: String, context: Context) {
 
+    init {
+        if (subscriptionKey.isEmpty()) {
+            throw InvalidSignatureVerifierSubscriptionException()
+        }
+    }
+
     @Suppress("SpreadOperator")
     private val client = OkHttpClient.Builder()
         .cache(Cache(context.cacheDir,
@@ -49,9 +55,14 @@ internal class ApiClient(baseUrl: String, subscriptionKey: String, context: Cont
 }
 
 /**
- * Exception thrown when the value set in `AndroidManifest.xml` for
- * `io.github.rakutentech.signatureverifier.RSVKeyFetchEndpoint` is not a valid URL.
+ * Exception thrown when endpoint is not a valid URL.
  */
 class InvalidSignatureVerifierBaseUrlException(
     exception: IllegalArgumentException
 ) : IllegalArgumentException("An invalid URL was provided for the Signature Verifier base url.", exception)
+
+/**
+ * Exception thrown when subscription key is not a valid.
+ */
+class InvalidSignatureVerifierSubscriptionException :
+    IllegalArgumentException("An invalid value was provided for the Signature Verifier subscription key.")

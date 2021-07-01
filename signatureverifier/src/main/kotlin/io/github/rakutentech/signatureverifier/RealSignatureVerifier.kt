@@ -1,8 +1,6 @@
 package io.github.rakutentech.signatureverifier
 
 import android.util.Base64
-import com.rakuten.tech.mobile.manifestconfig.annotations.ManifestConfig
-import com.rakuten.tech.mobile.manifestconfig.annotations.MetaData
 import io.github.rakutentech.signatureverifier.verification.PublicKeyCache
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -80,21 +78,5 @@ internal class RealSignatureVerifier(
 
         private const val UNCOMPRESSED_OFFSET = 1
         private const val POSITIVE_BIG_INTEGER = 1
-    }
-
-    @ManifestConfig
-    internal interface App {
-
-        /**
-         * Base URL for the Public Key API.
-         **/
-        @MetaData(key = "io.github.rakutentech.signatureverifier.RSVKeyFetchEndpoint")
-        fun baseUrl(): String
-
-        /**
-         * RAS Subscription Key for Public Key API.
-         **/
-        @MetaData(key = "io.github.rakutentech.signatureverifier.RASProjectSubscriptionKey")
-        fun subscriptionKey(): String
     }
 }
