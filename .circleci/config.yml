@@ -4,7 +4,7 @@ orbs:
   android-sdk: rakutentech/android-sdk@0.2.1
 
 workflows:
-  build_and_test:
+  build-and-release:
     jobs:
       - android-sdk/build:
           gradle-cache-key: >-
@@ -19,3 +19,44 @@ workflows:
               only: /^v.*/
             branches:
               only: /.*/
+      - release-verification:
+          type: approval
+          requires:
+            - android-sdk/build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - android-sdk/publish:
+          requires:
+            - release-verification
+          after-prepare-steps:
+            # Retrieve Base64 PGP Key and save to file
+            - run: |
+                if [[ "$RELEASE_PGP_KEY_BASE64" != "" ]]; then
+                  base64 -d \<<< "$RELEASE_PGP_KEY_BASE64" > ./maven-central-key.gpg
+                fi
+          post-steps:
+            - run:
+                name: Publish Documentation
+                command: |
+                  set -e
+                  ./gradlew generatePublishableDocs
+                  if [[ ! $CIRCLE_TAG == *"-"* ]]; then
+                    git checkout gh-pages
+                    cp -R signatureverifier/build/publishableDocs/docs/. ./docs
+                    cp -R signatureverifier/build/publishableDocs/_versions/. ./_versions
+                    git add docs _versions
+                    git config user.name "CI Publisher"
+                    git config user.email "dev-opensource@mail.rakuten.com"
+                    git commit -m "Publish documentation for $CIRCLE_TAG"
+                    git push origin gh-pages
+                  else
+                    echo "Documentation not published for snapshot version"
+                  fi
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
