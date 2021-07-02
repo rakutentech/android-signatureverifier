@@ -1,5 +1,5 @@
 apply from: '../config/android/library.gradle'
-apply plugin: "kotlin-android"
+apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
@@ -75,3 +75,17 @@ dokka {
         }
     }
 }
+
+apply from: '../config/publish/android.gradle'
+afterEvaluate {
+    publishing {
+        publications {
+            signatureverifier(MavenPublication, androidArtifact())
+        }
+    }
+}
+def isSnapshot = project.version.contains('-')
+if (isSnapshot) {
+    ext["MAVEN_CENTRAL_IS_SNAPSHOT"] = true
+}
+apply from: '../config/publish/maven-central.gradle'
