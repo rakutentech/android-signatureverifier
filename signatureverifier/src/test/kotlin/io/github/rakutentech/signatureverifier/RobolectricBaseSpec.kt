@@ -9,3 +9,5 @@ import org.robolectric.annotation.Config
 @Config(sdk = [28])
 @Ignore("base class")
 open class RobolectricBaseSpec
+
+interface IntegrationTests
