@@ -34,6 +34,13 @@ android {
             returnDefaultValues = true
             includeAndroidResources = true
         }
+        unitTests.all {
+            if (System.getenv("IS_INTEGRATION") != "true") {
+                options {
+                    excludeCategories 'io.github.rakutentech.signatureverifier.IntegrationTests'
+                }
+            }
+        }
     }
 }
 
