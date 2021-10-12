@@ -11,6 +11,7 @@ buildscript {
     repositories {
         google()
         jcenter()
+        mavenCentral()
         maven { url "http://dl.bintray.com/arturbosch/code-analysis" }
         maven { url "https://plugins.gradle.org/m2/"}
     }
