@@ -2,6 +2,8 @@
 [![CircleCI](https://circleci.com/gh/rakutentech/android-signatureverifier.svg?style=svg)](https://circleci.com/gh/rakutentech/android-signatureverifier)
 [![codecov](https://codecov.io/gh/rakutentech/android-signatureverifier/branch/main/graph/badge.svg?)](https://codecov.io/gh/rakutentech/android-signatureverifier)
 
+## 💀 ⚠️ This module is now EOL and is no longer maintained
+
 # Android Signature Verifier SDK
 Provides a security feature to verify any signed blob of data's authenticity after it has been downloaded.
 
